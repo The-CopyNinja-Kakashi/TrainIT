@@ -4,4 +4,4 @@ statsmodels
 scikit-learn
 Pillow
 streamlit
-joblib
+joblib==1.3.2
