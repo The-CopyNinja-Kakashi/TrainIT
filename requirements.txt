@@ -5,6 +5,3 @@ scikit-learn
 Pillow
 streamlit
 joblib
-labelEncoder
-Path
-os
