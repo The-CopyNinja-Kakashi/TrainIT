@@ -6,26 +6,29 @@ from sklearn.preprocessing import LabelEncoder
 from pathlib import Path
 import os
 
-BASE_DIR = Path.cwd()
-os.chdir(BASE_DIR)
+# Path setup - files are in main directory
+BASE_DIR = Path(__file__).parent
 
 @st.cache_resource
 def load_components():
     try:
-        metadata = joblib.load('./cluster_models/metadata.joblib')
+        # Load models from cluster_models folder
+        metadata = joblib.load(BASE_DIR / 'cluster_models/metadata.joblib')
         models = {}
         for cluster, model_info in metadata.items():
-            models[int(cluster)] = joblib.load(f'./cluster_models/rf_cluster_{cluster}.joblib')
+            models[int(cluster)] = joblib.load(BASE_DIR / f'cluster_models/rf_cluster_{cluster}.joblib')
         
-        df = pd.read_csv('./data/apy.csv')
+        # Load data files from main directory
+        df = pd.read_csv(BASE_DIR / 'apy.csv')
+        clustered_df = pd.read_csv(BASE_DIR / 'clustered_data3.csv')
         
+        # Create encoders
         state_encoder = LabelEncoder().fit(df['State_Name'])
         crop_encoder = LabelEncoder().fit(df['Crop'])
         
-        season_options = sorted(df['Season'].unique().tolist())
-        
-        kmeans = joblib.load('./cluster_models/kmeans_model.joblib')
-        logyield_scaler = joblib.load('./cluster_models/logyield_scaler.joblib')
+        # Load clustering components
+        kmeans = joblib.load(BASE_DIR / 'cluster_models/kmeans_model.joblib')
+        logyield_scaler = joblib.load(BASE_DIR / 'cluster_models/logyield_scaler.joblib')
         
         return {
             'models': models,
@@ -35,13 +38,15 @@ def load_components():
             'crop_encoder': crop_encoder,
             'state_options': list(state_encoder.classes_),
             'crop_options': list(crop_encoder.classes_),
-            'season_options': season_options,
+            'season_options': sorted(df['Season'].unique().tolist()),
             'district_options': sorted(df['District_Name'].unique().tolist()),
-            'avg_yields': pd.read_csv('./data/clustered_data3.csv')
+            'avg_yields': clustered_df
         }
     
     except Exception as e:
         st.error(f"Error loading components: {str(e)}")
+        st.error(f"Current working directory: {os.getcwd()}")
+        st.error(f"BASE_DIR contents: {list(BASE_DIR.glob('*'))}")
         return None
 
 def main():
